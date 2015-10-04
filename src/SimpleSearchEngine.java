@@ -63,6 +63,7 @@ public class SimpleSearchEngine {
 	private static void checkPrecisionAndUpdateQuery(SimpleSearchEngine inst, String queryTerm)
 	{
 		boolean exit = false;
+		queryTerm = queryTerm.replaceAll("\\s+", "%20");
 		do
 		{
 			JSONArray output = inst.getQUeryResult(queryTerm);
@@ -111,24 +112,24 @@ public class SimpleSearchEngine {
 		TreeMap<Integer, Double> updatedVector = inst.upDateQueryVector(queryVector, relevantMap, docVector);
 		updatedVector = (TreeMap<Integer, Double>) sortByValues(updatedVector);
 		int count = 0;
-		String newQuery = "";
+		StringBuffer newQuery = new StringBuffer(queryTerm);
 		for (Map.Entry<Integer, Double> temp : updatedVector.entrySet())
 		{
 			System.out.println("the weight is " + temp.getValue());
 			System.out.println("the index is " + temp.getKey());
 			System.out.println("the corresponding word is " + vector.get(temp.getKey()));
-			newQuery +=  vector.get(temp.getKey());
-			count++;
-			if (count == 3)
+			if (queryTerm.indexOf(vector.get(temp.getKey())) == -1)
+			{
+				newQuery.append("%20");
+				newQuery.append(vector.get(temp.getKey()));
+				count++;
+			}
+			if (count == 2)
 			{
 				break;
 			}
-			else
-			{
-				newQuery += "%20";
-			}
 		}
-		return newQuery;
+		return newQuery.toString();
 	}
 
 	public static <K, V extends Comparable<V>> Map<K, V> sortByValues(final Map<K, V> map) {

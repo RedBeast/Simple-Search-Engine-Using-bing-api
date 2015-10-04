@@ -45,8 +45,7 @@ public class SimpleSearchEngine {
 			System.out.println("not enough argument ");
 			System.exit(-1);
 		}
-		//accountKey = args[0];
-		accountKey ="hOVysMk4Ynb2GSI7COBxmjJf+GXpgKMP0xcy3RpYVY4";
+		accountKey = args[0];
 		String queryTerm = args[2];
 		SimpleSearchEngine inst = new SimpleSearchEngine();
 		inst.precision = Double.parseDouble(args[1]);

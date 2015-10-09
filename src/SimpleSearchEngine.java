@@ -160,8 +160,10 @@ public class SimpleSearchEngine {
 			text = text.toLowerCase();
 			String[] arrayOfWord = text.split("\\s+");
 			for (int j = 0; j < arrayOfWord.length; j++) {
+				int[] index = {Math.max(0, j - 1), Math.min(arrayOfWord.length, j + 1), Math.max(0, j - 2),  Math.min(arrayOfWord.length, j + 2)};
 				if (arrayOfWord[j].equals(word1)) {
-					for (int k = Math.max(0, j - 3); k < Math.min(arrayOfWord.length, j + 3); k++) {
+					for (int l = 0; l < 4; l++) {
+						int k = index[l];
 						if (map1.containsKey(arrayOfWord[k])) {
 							if (k > j)
 								map1.put(arrayOfWord[k], map1.get(arrayOfWord[k]) + 1);
@@ -172,7 +174,8 @@ public class SimpleSearchEngine {
 					}
 				}
 				if (arrayOfWord[j].equals(word2)) {
-					for (int k = Math.max(0, j - 2); k < Math.min(arrayOfWord.length, j + 2); k++) {
+					for (int l = 0; l < 4; l++) {
+						int k = index[l];
 						if (map2.containsKey(arrayOfWord[k])) {
 							if (k > j)
 								map2.put(arrayOfWord[k], map2.get(arrayOfWord[k]) + 1);
@@ -202,7 +205,7 @@ public class SimpleSearchEngine {
 			}
 		}
 		
-		ArrayList<String> result = new ArrayList(Arrays.asList(words));
+		ArrayList<String> result = new ArrayList<String>(Arrays.asList(words));
 		result.remove(word1);
 		result.remove(word2);
 	        int index = result.indexOf(markWord1);

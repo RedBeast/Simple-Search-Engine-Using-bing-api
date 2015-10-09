@@ -129,9 +129,112 @@ public class SimpleSearchEngine {
 				break;
 			}
 		}
-		return newQuery.toString();
+		return reorderQueryTerm(output, newQuery.toString(), relevantMap);
 	}
 
+	public static String reorderQueryTerm(JSONArray output, String queryTerm, Map<Integer, Boolean> relevantMap) {
+		String [] words = queryTerm.split("%20");
+
+		if (words.length < 3)
+			return queryTerm;
+
+		String word1 = words[words.length - 1];
+		String word2 = words[words.length - 2];
+		
+		Map<String, Integer> map1 = new HashMap<String, Integer>();
+		Map<String, Integer> map2 = new HashMap<String, Integer>();
+		for (int i = 0; i < words.length - 2; i++) {
+			map1.put(words[i], 0);
+			map2.put(words[i], 0);	
+		}
+
+		for (int i = 0; i < 10; i++) {
+			if (relevantMap.get(i) == false)
+				continue;
+			
+			JSONObject document = (JSONObject) output.get(i);
+			String description = (String) document.get("Description");
+			String title = (String) document.get("Title");
+			String text = description +" " +  title;
+			text = text.replaceAll("[^A-Za-z0-9 ]", "");
+			text = text.toLowerCase();
+			String[] arrayOfWord = text.split("\\s+");
+			for (int j = 0; j < arrayOfWord.length; j++) {
+				if (arrayOfWord[j].equals(word1)) {
+					for (int k = Math.max(0, j - 3); k < Math.min(arrayOfWord.length, j + 3); k++) {
+						if (map1.containsKey(arrayOfWord[k])) {
+							if (k > j)
+								map1.put(arrayOfWord[k], map1.get(arrayOfWord[k]) + 1);
+							else
+								map1.put(arrayOfWord[k], map1.get(arrayOfWord[k]) - 1);
+							break;
+						}
+					}
+				}
+				if (arrayOfWord[j].equals(word2)) {
+					for (int k = Math.max(0, j - 2); k < Math.min(arrayOfWord.length, j + 2); k++) {
+						if (map2.containsKey(arrayOfWord[k])) {
+							if (k > j)
+								map2.put(arrayOfWord[k], map2.get(arrayOfWord[k]) + 1);
+							else
+								map2.put(arrayOfWord[k], map2.get(arrayOfWord[k]) - 1);
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		int tmp = 0;
+		String markWord1 = "";
+		for (Map.Entry<String, Integer> entry : map1.entrySet()) {
+			if (Math.abs(entry.getValue()) >= tmp) {
+				tmp = entry.getValue();
+				markWord1 = entry.getKey();
+			}
+		}
+		tmp = 0;
+		String markWord2 = "";
+		for (Map.Entry<String, Integer> entry : map2.entrySet()) {
+			if (Math.abs(entry.getValue()) >= tmp) {
+				tmp = entry.getValue();
+				markWord2 = entry.getKey();
+			}
+		}
+		
+		ArrayList<String> result = new ArrayList(Arrays.asList(words));
+		result.remove(word1);
+		result.remove(word2);
+	        int index = result.indexOf(markWord1);
+		if (map1.get(markWord1) < 0 && index + 1 < result.size())
+			result.add(index + 1, word1);
+		else if (map1.get(markWord1) > 0)
+			result.add(index, word1);
+		else
+			result.add(word1);
+
+		index = result.indexOf(markWord2);
+		if (map2.get(markWord2) < 0 && index + 1 < result.size())
+			result.add(index + 1, word2);
+		else if (map2.get(markWord2) > 0)
+			result.add(index, word2);
+		else
+			result.add(word2);
+		
+		String newQuery = new String();
+		for (String str : result) {
+			if (newQuery.equals(""))
+				newQuery += str;
+			else {
+				newQuery += "%20";
+				newQuery += str;
+			}
+		}
+		
+		return newQuery;
+	}
+	
+		
 	public static <K, V extends Comparable<V>> Map<K, V> sortByValues(final Map<K, V> map) {
 		Comparator<K> valueComparator =  new Comparator<K>() {
 			public int compare(K k1, K k2) {
